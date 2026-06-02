@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get,post},
+    routing::{get,post, patch},
     Router,
 };
 
@@ -7,7 +7,11 @@ use crate::{
     handlers::{
         health_handler::health_check, 
         order_handler::{create_order,list_orders, get_order_by_id}, 
-        product_handler::{create_product, list_products, get_product_by_id},
+        product_handler::{
+            create_product, 
+            list_products,
+            get_product_by_id,
+            update_product_stock},
         ws_handler::ws_handler,
     },
     state::AppState};
@@ -19,6 +23,7 @@ pub fn create_router(state: AppState) -> Router {
     .route("/orders", post(create_order).get(list_orders))
     .route("/ws", get(ws_handler))
     .route("/products/{id}", get(get_product_by_id))
+    .route("/products/{id}/stock", patch(update_product_stock))
     .route("/orders/{id}", get(get_order_by_id))
     .with_state(state)
 }

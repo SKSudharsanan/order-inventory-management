@@ -40,3 +40,9 @@ pub struct CreateOrderRequest {
     pub product_id: Uuid,
     pub quantity: i32,
 }
+
+#[derive(Debug, Deserialize)]
+
+pub struct UpdateStockRequest {
+    pub stock: i32,
+}

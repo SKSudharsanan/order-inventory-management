@@ -49,3 +49,22 @@ pub async fn find_product_by_id(
     .fetch_optional(db)
     .await
 }
+
+pub async fn update_product_stock(
+    db: &PgPool,
+    product_id: Uuid,
+    stock: i32,
+) -> Result<Option<Product>, sqlx::Error> {
+    sqlx::query_as::<_, Product>(
+        r#"
+        UPDATE products
+        SET stock = $1
+        WHERE id = $2
+        RETURNING id, name, sku, price, stock, created_at
+        "#,
+    )
+    .bind(stock)
+    .bind(product_id)
+    .fetch_optional(db)
+    .await
+}

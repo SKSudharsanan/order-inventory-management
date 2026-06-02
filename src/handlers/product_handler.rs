@@ -4,7 +4,7 @@ use serde_json;
 
 use crate::{
     errors::{AppError, AppResult},
-    models::{CreateProductRequest, Product},
+    models::{CreateProductRequest, Product, UpdateStockRequest},
     repositories::product_repository,
     response::ApiResponse,
     state::AppState,
@@ -88,3 +88,39 @@ pub async fn get_product_by_id(
         )),
     ))
 }
+
+pub async fn update_product_stock(
+    State(state): State<AppState>,
+    Path(product_id): Path<uuid::Uuid>,
+    Json(payload): Json<UpdateStockRequest>,
+) -> AppResult<(StatusCode, Json<ApiResponse<Product>>)> {
+    if payload.stock < 0 {
+        return Err(AppError::BadRequest("Stock cannot be negative".to_string()));
+    }
+
+    let product = product_repository::update_product_stock(
+        &state.db,
+        product_id,
+        payload.stock,
+    )
+    .await?
+    .ok_or(AppError::ProductNotFound)?;
+
+    let event = serde_json::json!({
+        "event": "product_stock_updated",
+        "product_id": product.id,
+        "name": product.name,
+        "stock": product.stock
+    });
+
+    let _ = state.event_tx.send(event.to_string());
+
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse::success(
+            "Product stock updated successfully",
+            product,
+        )),
+    ))
+}
+

@@ -5,8 +5,14 @@ use axum::{
 
 use crate::{
     handlers::{
-        health_handler::{health_check,readiness_check}, 
-        auth_handler::register_user,
+        health_handler::{
+            health_check,
+            readiness_check
+        }, 
+        auth_handler::{
+            register_user,
+            login_user
+        },
         order_handler::{
             create_order,
             list_orders, 
@@ -27,6 +33,7 @@ pub fn create_router(state: AppState) -> Router {
     .route("/ready", get(readiness_check))
     .route("/health", get(health_check))
     .route("/auth/register", post(register_user))
+    .route("/auth/login", post(login_user))
     .route("/products", get(list_products).post(create_product))
     .route("/orders", post(create_order).get(list_orders))
     .route("/ws", get(ws_handler))

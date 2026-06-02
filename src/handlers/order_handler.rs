@@ -79,3 +79,43 @@ pub async fn create_order(
         Json(ApiResponse::success("Order created successfully", order)),
     ))
 }
+
+pub async fn list_orders(
+
+    State(state): State<AppState>,
+
+) -> AppResult<(StatusCode, Json<ApiResponse<Vec<Order>>>)> {
+
+    let orders = sqlx::query_as::<_, Order>(
+
+        r#"
+
+        SELECT id, customer_name, product_id, quantity, total_amount, status, created_at
+
+        FROM orders
+
+        ORDER BY created_at DESC
+
+        "#,
+
+    )
+
+    .fetch_all(&state.db)
+
+    .await?;
+
+    Ok((
+
+        StatusCode::OK,
+
+        Json(ApiResponse::success(
+
+            "Orders fetched successfully",
+
+            orders,
+
+        )),
+
+    ))
+
+}

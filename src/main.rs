@@ -8,6 +8,7 @@ mod models;
 use routes::create_router;
 use sqlx::postgres::PgPoolOptions;
 use state::AppState;
+use tokio::sync::broadcast;
 
 #[tokio::main]
 async fn main() {
@@ -23,7 +24,12 @@ async fn main() {
     .await
     .expect("failed to connect to postgres");
 
-    let state = AppState {db};
+    let (event_tx, _) = broadcast::channel(100);
+
+let state = AppState {
+    db,
+    event_tx,
+};
     let app = create_router(state);
 
     let listener = tokio::net::TcpListener::bind(&server_url)

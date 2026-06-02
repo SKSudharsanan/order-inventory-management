@@ -4,6 +4,8 @@ use axum::{
     Json,
 };
 
+use serde_json;
+
 use crate::{
     errors::{AppError, AppResult},
     models::{CreateProductRequest, Product},
@@ -44,6 +46,15 @@ pub async fn create_product(
     .bind(payload.stock)
     .fetch_one(&state.db)
     .await?;
+
+    let event = serde_json::json!({
+    "event": "product_created",
+    "product_id": product.id,
+    "name": product.name,
+    "stock": product.stock
+});
+
+let _ = state.event_tx.send(event.to_string());
 
     Ok((
         StatusCode::CREATED,

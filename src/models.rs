@@ -19,3 +19,24 @@ pub struct CreateProductRequest {
     pub price: i64,
     pub stock: i32,
 }
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+
+pub struct Order {
+    pub id: Uuid,
+    pub customer_name: String,
+    pub product_id: Uuid,
+    pub quantity: i32,
+    pub total_amount: i64,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+
+}
+
+#[derive(Debug, Deserialize)]
+
+pub struct CreateOrderRequest {
+    pub customer_name: String,
+    pub product_id: Uuid,
+    pub quantity: i32,
+}

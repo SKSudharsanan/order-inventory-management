@@ -51,3 +51,32 @@ pub struct UpdateStockRequest {
 pub struct UpdateOrderStatusRequest {
     pub status: String,
 }
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct User {
+    pub id: Uuid,
+    pub username: String,
+    pub email: String,
+    pub password_hash: String,
+    pub role: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RegisterUserRequest {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub role: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LoginUserRequest {
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AuthResponse {
+    pub token: String,
+}

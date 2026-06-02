@@ -1,17 +1,13 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
+use axum::{Json, extract::State, http::StatusCode};
 
 use serde_json;
 
 use crate::{
     errors::{AppError, AppResult},
     models::{CreateProductRequest, Product},
+    repositories::product_repository,
     response::ApiResponse,
     state::AppState,
-    repositories::product_repository
 };
 
 pub async fn create_product(
@@ -27,22 +23,32 @@ pub async fn create_product(
     }
 
     if payload.price <= 0 {
-        return Err(AppError::BadRequest("Price must be greater than 0".to_string()));
+        return Err(AppError::BadRequest(
+            "Price must be greater than 0".to_string(),
+        ));
     }
 
     if payload.stock < 0 {
         return Err(AppError::BadRequest("Stock cannot be negative".to_string()));
     }
-
-let product = product_repository::create_product(&state.db, payload).await?;
+    let product = match product_repository::create_product(&state.db, payload).await {
+        Ok(product) => product,
+        Err(sqlx::Error::Database(db_error)) => {
+            if db_error.constraint() == Some("products_sku_key") {
+                return Err(AppError::DuplicateSku);
+            }
+            return Err(AppError::DatabaseError(sqlx::Error::Database(db_error)));
+        }
+        Err(error) => return Err(AppError::DatabaseError(error)),
+    };
     let event = serde_json::json!({
-    "event": "product_created",
-    "product_id": product.id,
-    "name": product.name,
-    "stock": product.stock
-});
+        "event": "product_created",
+        "product_id": product.id,
+        "name": product.name,
+        "stock": product.stock
+    });
 
-let _ = state.event_tx.send(event.to_string());
+    let _ = state.event_tx.send(event.to_string());
 
     Ok((
         StatusCode::CREATED,

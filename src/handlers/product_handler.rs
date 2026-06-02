@@ -53,3 +53,25 @@ pub async fn create_product(
         )),
     ))
 }
+
+pub async fn list_products(
+    State(state): State<AppState>,
+) -> AppResult<(StatusCode, Json<ApiResponse<Vec<Product>>>)> {
+    let products = sqlx::query_as::<_, Product>(
+        r#"
+        SELECT id, name, sku, price, stock, created_at
+        FROM products
+        ORDER BY created_at DESC
+        "#,
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse::success(
+            "Products fetched successfully",
+            products,
+        )),
+    ))
+}

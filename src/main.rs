@@ -3,6 +3,7 @@ mod errors;
 mod response;
 mod routes;
 mod state;
+mod models;
 
 use routes::create_router;
 use sqlx::postgres::PgPoolOptions;

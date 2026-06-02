@@ -6,7 +6,8 @@ use axum::{
 
 use crate::{
     errors::{AppError, AppResult},
-    models::{CreateOrderRequest, Order, Product},
+    models::{CreateOrderRequest, Order},
+    repositories::order_repository,
     response::ApiResponse,
     state::AppState,
 };
@@ -20,21 +21,17 @@ pub async fn create_order(
     }
 
     if payload.quantity <= 0 {
-        return Err(AppError::BadRequest("Quantity must be greater than 0".to_string()));
+        return Err(AppError::BadRequest(
+            "Quantity must be greater than 0".to_string(),
+        ));
     }
 
     let mut tx = state.db.begin().await?;
 
-    let product = sqlx::query_as::<_, Product>(
-        r#"
-        SELECT id, name, sku, price, stock, created_at
-        FROM products
-        WHERE id = $1
-        FOR UPDATE
-        "#,
+    let product = order_repository::find_product_for_update(
+        &mut tx,
+        payload.product_id,
     )
-    .bind(payload.product_id)
-    .fetch_optional(&mut *tx)
     .await?
     .ok_or(AppError::NotFound)?;
 
@@ -45,34 +42,33 @@ pub async fn create_order(
     let new_stock = product.stock - payload.quantity;
     let total_amount = product.price * payload.quantity as i64;
 
-    sqlx::query(
-        r#"
-        UPDATE products
-        SET stock = $1
-        WHERE id = $2
-        "#,
+    order_repository::update_product_stock(
+        &mut tx,
+        product.id,
+        new_stock,
     )
-    .bind(new_stock)
-    .bind(product.id)
-    .execute(&mut *tx)
     .await?;
 
-    let order = sqlx::query_as::<_, Order>(
-        r#"
-        INSERT INTO orders (customer_name, product_id, quantity, total_amount, status)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, customer_name, product_id, quantity, total_amount, status, created_at
-        "#,
+    let order = order_repository::create_order(
+        &mut tx,
+        payload.customer_name,
+        product.id,
+        payload.quantity,
+        total_amount,
     )
-    .bind(payload.customer_name)
-    .bind(product.id)
-    .bind(payload.quantity)
-    .bind(total_amount)
-    .bind("created")
-    .fetch_one(&mut *tx)
     .await?;
 
     tx.commit().await?;
+
+    let event = serde_json::json!({
+        "event": "order_created",
+        "order_id": order.id,
+        "product_id": product.id,
+        "quantity": order.quantity,
+        "remaining_stock": new_stock
+    });
+
+    let _ = state.event_tx.send(event.to_string());
 
     Ok((
         StatusCode::CREATED,
@@ -83,16 +79,8 @@ pub async fn create_order(
 pub async fn list_orders(
     State(state): State<AppState>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Vec<Order>>>)> {
-    let orders = sqlx::query_as::<_, Order>(
-        r#"
-        SELECT id, customer_name, product_id, quantity, total_amount, status, created_at
-        FROM orders
-        ORDER BY created_at DESC
-        "#,
+    let orders = order_repository::list_orders(&state.db).await?;
 
-    )
-    .fetch_all(&state.db)
-    .await?;
     Ok((
         StatusCode::OK,
         Json(ApiResponse::success(

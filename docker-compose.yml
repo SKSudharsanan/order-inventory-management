@@ -10,6 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - order_inventory_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
 
 volumes:
   order_inventory_data:

@@ -6,6 +6,7 @@ mod repositories;
 mod response;
 mod routes;
 mod state;
+mod utils;
 
 use config::Config;
 use routes::create_router;

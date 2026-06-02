@@ -80,3 +80,22 @@ pub struct LoginUserRequest {
 pub struct AuthResponse {
     pub token: String,
 }
+
+#[derive(Debug, Serialize)]
+pub struct UserResponse {
+    pub id: Uuid,
+    pub username: String,
+    pub email: String,
+    pub role: String,
+}
+
+impl From<User> for UserResponse {
+    fn from(user: User) -> Self {
+        Self {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+        }
+    }
+}

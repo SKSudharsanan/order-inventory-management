@@ -6,7 +6,7 @@ use axum::{
 
 use crate::{
     errors::{AppError, AppResult},
-    models::{RegisterUserRequest, User},
+    models::{RegisterUserRequest, User, UserResponse},
     repositories::user_repository,
     response::ApiResponse,
     state::AppState,
@@ -16,7 +16,7 @@ use crate::{
 pub async fn register_user(
     State(state): State<AppState>,
     Json(payload): Json<RegisterUserRequest>,
-) -> AppResult<(StatusCode, Json<ApiResponse<User>>)> {
+) -> AppResult<(StatusCode, Json<ApiResponse<UserResponse>>)> {
     if payload.username.trim().is_empty() {
         return Err(AppError::BadRequest("Username is required".to_string()));
     }
@@ -55,7 +55,7 @@ pub async fn register_user(
         StatusCode::CREATED,
         Json(ApiResponse::success(
             "User registered successfully",
-            user,
+            user.into(),
         )),
     ))
 }

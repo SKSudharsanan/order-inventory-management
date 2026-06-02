@@ -1,2 +1,24 @@
+# Rust
 /target
+
+# Environment
 .env
+
+# SQLx
+.sqlx
+
+# Mac
+.DS_Store
+
+# IDE
+.vscode
+.idea
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+
+# Cargo backup
+Cargo.lock.bak

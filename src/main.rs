@@ -1,4 +1,5 @@
 mod handlers;
+mod errors;
 mod response;
 mod routes;
 

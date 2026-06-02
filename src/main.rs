@@ -4,6 +4,7 @@ mod response;
 mod routes;
 mod state;
 mod models;
+mod repositories;
 
 use routes::create_router;
 use sqlx::postgres::PgPoolOptions;

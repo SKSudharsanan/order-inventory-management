@@ -11,6 +11,7 @@ use crate::{
     models::{CreateProductRequest, Product},
     response::ApiResponse,
     state::AppState,
+    repositories::product_repository
 };
 
 pub async fn create_product(
@@ -33,20 +34,7 @@ pub async fn create_product(
         return Err(AppError::BadRequest("Stock cannot be negative".to_string()));
     }
 
-    let product = sqlx::query_as::<_, Product>(
-        r#"
-        INSERT INTO products (name, sku, price, stock)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, name, sku, price, stock, created_at
-        "#,
-    )
-    .bind(payload.name)
-    .bind(payload.sku)
-    .bind(payload.price)
-    .bind(payload.stock)
-    .fetch_one(&state.db)
-    .await?;
-
+let product = product_repository::create_product(&state.db, payload).await?;
     let event = serde_json::json!({
     "event": "product_created",
     "product_id": product.id,
@@ -68,16 +56,7 @@ let _ = state.event_tx.send(event.to_string());
 pub async fn list_products(
     State(state): State<AppState>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Vec<Product>>>)> {
-    let products = sqlx::query_as::<_, Product>(
-        r#"
-        SELECT id, name, sku, price, stock, created_at
-        FROM products
-        ORDER BY created_at DESC
-        "#,
-    )
-    .fetch_all(&state.db)
-    .await?;
-
+    let products = product_repository::list_products(&state.db).await?;
     Ok((
         StatusCode::OK,
         Json(ApiResponse::success(

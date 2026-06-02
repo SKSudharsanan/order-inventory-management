@@ -33,10 +33,10 @@ pub async fn create_order(
         payload.product_id,
     )
     .await?
-    .ok_or(AppError::NotFound)?;
+    .ok_or(AppError::ProductNotFound)?;
 
     if product.stock < payload.quantity {
-        return Err(AppError::BadRequest("Insufficient stock".to_string()));
+        return Err(AppError::InsufficientStock);
     }
 
     let new_stock = product.stock - payload.quantity;

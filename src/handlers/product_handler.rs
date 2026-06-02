@@ -1,4 +1,4 @@
-use axum::{Json, extract::State, http::StatusCode};
+use axum::{Json, extract::{State, Path}, http::StatusCode};
 
 use serde_json;
 
@@ -68,6 +68,23 @@ pub async fn list_products(
         Json(ApiResponse::success(
             "Products fetched successfully",
             products,
+        )),
+    ))
+}
+
+pub async fn get_product_by_id(
+    State(state): State<AppState>,
+    Path(product_id): Path<uuid::Uuid>,
+) -> AppResult<(StatusCode, Json<ApiResponse<Product>>)> {
+    let product = product_repository::find_product_by_id(&state.db, product_id)
+        .await?
+        .ok_or(AppError::ProductNotFound)?;
+
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse::success(
+            "Product fetched successfully",
+            product,
         )),
     ))
 }

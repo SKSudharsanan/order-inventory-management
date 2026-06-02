@@ -1,6 +1,7 @@
 use sqlx::PgPool;
 
 use crate::models::{CreateProductRequest, Product};
+use uuid::Uuid;
 
 pub async fn create_product(
     db: &PgPool,
@@ -30,5 +31,21 @@ pub async fn list_products(db: &PgPool) -> Result<Vec<Product>, sqlx::Error> {
         "#,
     )
     .fetch_all(db)
+    .await
+}
+
+pub async fn find_product_by_id(
+    db: &PgPool,
+    product_id: Uuid,
+) -> Result<Option<Product>, sqlx::Error> {
+    sqlx::query_as::<_, Product>(
+        r#"
+        SELECT id, name, sku, price, stock, created_at
+        FROM products
+        WHERE id = $1
+        "#,
+    )
+    .bind(product_id)
+    .fetch_optional(db)
     .await
 }

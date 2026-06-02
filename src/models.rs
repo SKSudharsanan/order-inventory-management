@@ -46,3 +46,8 @@ pub struct CreateOrderRequest {
 pub struct UpdateStockRequest {
     pub stock: i32,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateOrderStatusRequest {
+    pub status: String,
+}

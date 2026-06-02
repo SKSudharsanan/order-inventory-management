@@ -6,7 +6,7 @@ use axum::{
 
 use crate::{
     errors::{AppError, AppResult},
-    models::{CreateOrderRequest, Order},
+    models::{CreateOrderRequest, Order, UpdateOrderStatusRequest},
     repositories::order_repository,
     response::ApiResponse,
     state::AppState,
@@ -102,6 +102,44 @@ pub async fn get_order_by_id(
         StatusCode::OK,
         Json(ApiResponse::success(
             "Order fetched successfully",
+            order,
+        )),
+    ))
+}
+
+pub async fn update_order_status(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    Json(payload): Json<UpdateOrderStatusRequest>,
+) -> AppResult<(StatusCode, Json<ApiResponse<Order>>)> {
+    let valid_statuses = ["created", "processing", "shipped", "delivered", "cancelled"];
+
+    if !valid_statuses.contains(&payload.status.as_str()) {
+        return Err(AppError::BadRequest(
+            "Invalid order status".to_string(),
+        ));
+    }
+
+    let order = order_repository::update_order_status(
+        &state.db,
+        order_id,
+        payload.status,
+    )
+    .await?
+    .ok_or(AppError::OrderNotFound)?;
+
+    let event = serde_json::json!({
+        "event": "order_status_updated",
+        "order_id": order.id,
+        "status": order.status
+    });
+
+    let _ = state.event_tx.send(event.to_string());
+
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse::success(
+            "Order status updated successfully",
             order,
         )),
     ))

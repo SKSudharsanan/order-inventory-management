@@ -90,3 +90,22 @@ pub async fn find_order_by_id(
     .fetch_optional(db)
     .await
 }
+
+pub async fn update_order_status(
+    db: &PgPool,
+    order_id: Uuid,
+    status: String,
+) -> Result<Option<Order>, sqlx::Error> {
+    sqlx::query_as::<_, Order>(
+        r#"
+        UPDATE orders
+        SET status = $1
+        WHERE id = $2
+        RETURNING id, customer_name, product_id, quantity, total_amount, status, created_at
+        "#,
+    )
+    .bind(status)
+    .bind(order_id)
+    .fetch_optional(db)
+    .await
+}

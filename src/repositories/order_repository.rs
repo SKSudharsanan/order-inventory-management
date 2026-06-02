@@ -74,3 +74,19 @@ pub async fn list_orders(db: &PgPool) -> Result<Vec<Order>, sqlx::Error> {
     .fetch_all(db)
     .await
 }
+
+pub async fn find_order_by_id(
+    db: &PgPool,
+    order_id: Uuid,
+) -> Result<Option<Order>, sqlx::Error> {
+    sqlx::query_as::<_, Order>(
+        r#"
+        SELECT id, customer_name, product_id, quantity, total_amount, status, created_at
+        FROM orders
+        WHERE id = $1
+        "#,
+    )
+    .bind(order_id)
+    .fetch_optional(db)
+    .await
+}

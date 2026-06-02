@@ -1,5 +1,5 @@
 use axum::{
-    extract::State,
+    extract::{State,Path},
     http::StatusCode,
     Json,
 };
@@ -86,6 +86,23 @@ pub async fn list_orders(
         Json(ApiResponse::success(
             "Orders fetched successfully",
             orders,
+        )),
+    ))
+}
+
+pub async fn get_order_by_id(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+) -> AppResult<(StatusCode, Json<ApiResponse<Order>>)> {
+    let order = order_repository::find_order_by_id(&state.db, order_id)
+        .await?
+        .ok_or(AppError::OrderNotFound)?;
+
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse::success(
+            "Order fetched successfully",
+            order,
         )),
     ))
 }

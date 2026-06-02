@@ -1,8 +1,11 @@
-use axum::{routing::get, Router};
+mod handlers;
+mod routes;
+
+use routes::create_router;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/health", get(health_check));
+    let app = create_router();
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
@@ -13,8 +16,4 @@ async fn main() {
     axum::serve(listener, app)
         .await
         .expect("server failed");
-}
-
-async fn health_check() -> &'static str {
-    "OK"
 }

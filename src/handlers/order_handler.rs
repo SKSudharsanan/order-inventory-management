@@ -10,9 +10,11 @@ use crate::{
     repositories::order_repository,
     response::ApiResponse,
     state::AppState,
+    middleware::AuthUser
 };
 
 pub async fn create_order(
+    _auth_user: AuthUser,
     State(state): State<AppState>,
     Json(payload): Json<CreateOrderRequest>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Order>>)> {
@@ -108,6 +110,7 @@ pub async fn get_order_by_id(
 }
 
 pub async fn update_order_status(
+    _auth_user: AuthUser,
     State(state): State<AppState>,
     Path(order_id): Path<uuid::Uuid>,
     Json(payload): Json<UpdateOrderStatusRequest>,

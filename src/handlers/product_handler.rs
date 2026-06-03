@@ -8,9 +8,11 @@ use crate::{
     repositories::product_repository,
     response::ApiResponse,
     state::AppState,
+    middleware::AuthUser
 };
 
 pub async fn create_product(
+     _auth_user: AuthUser,
     State(state): State<AppState>,
     Json(payload): Json<CreateProductRequest>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Product>>)> {
@@ -90,6 +92,7 @@ pub async fn get_product_by_id(
 }
 
 pub async fn update_product_stock(
+     _auth_user: AuthUser,
     State(state): State<AppState>,
     Path(product_id): Path<uuid::Uuid>,
     Json(payload): Json<UpdateStockRequest>,

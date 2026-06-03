@@ -32,6 +32,10 @@ impl AuthUser {
         self.role == "staff"
     }
 
+    pub fn can_create_orders(&self) -> bool{
+        self.is_staff() || self.is_admin() || self.is_manager()
+    }
+
     pub fn can_manage_inventory(&self) -> bool {
         self.is_admin() || self.is_manager()
     }

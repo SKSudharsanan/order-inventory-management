@@ -18,7 +18,7 @@ pub async fn create_order(
     State(state): State<AppState>,
     Json(payload): Json<CreateOrderRequest>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Order>>)> {
-    if !_auth_user.can_manage_orders() {
+    if !_auth_user.can_create_orders() {
     return Err(AppError::Forbidden);
     }
     if payload.customer_name.trim().is_empty() {

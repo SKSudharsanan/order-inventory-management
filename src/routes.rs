@@ -11,6 +11,7 @@ use crate::{
         }, 
         auth_handler::{
             register_user,
+            me,
             login_user
         },
         order_handler::{
@@ -30,6 +31,7 @@ use crate::{
 
 pub fn create_router(state: AppState) -> Router {
     Router::new()
+    .route("/auth/me", get(me))
     .route("/ready", get(readiness_check))
     .route("/health", get(health_check))
     .route("/auth/register", post(register_user))

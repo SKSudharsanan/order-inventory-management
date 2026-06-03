@@ -32,6 +32,9 @@ pub enum AppError {
 
     #[error("Forbidden: you do not have permission to perform this action")]
     Forbidden,
+
+    #[error("Unauthorized")]
+    Unauthorized,
 }
 
 #[derive(Serialize)]
@@ -51,6 +54,7 @@ impl IntoResponse for AppError {
             AppError::BadRequest(_) => StatusCode::BAD_REQUEST,
             AppError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Forbidden => StatusCode::FORBIDDEN,
+            AppError::Unauthorized => StatusCode::UNAUTHORIZED,
         };
 
         let body = Json(ErrorResponse {

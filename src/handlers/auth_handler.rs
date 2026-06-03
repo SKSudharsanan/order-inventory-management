@@ -10,6 +10,7 @@ use crate::{
     repositories::user_repository,
     response::ApiResponse,
     state::AppState,
+    middleware::AuthUser,
     utils::{
         jwt::generate_token,
         password::{hash_password, verify_password},
@@ -104,6 +105,26 @@ let auth_response = AuthResponse {
         Json(ApiResponse::success(
             "Login successful",
             auth_response,
+        )),
+    ))
+}
+
+pub async fn me(
+    auth_user: AuthUser,
+    State(state): State<AppState>,
+) -> AppResult<(StatusCode, Json<ApiResponse<UserResponse>>)> {
+    let user = user_repository::find_user_by_id(
+        &state.db,
+        auth_user.user_id,
+    )
+    .await?
+    .ok_or(AppError::Unauthorized)?;
+
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse::success(
+            "User profile fetched successfully",
+            user.into(),
         )),
     ))
 }

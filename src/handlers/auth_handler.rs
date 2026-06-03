@@ -90,6 +90,7 @@ pub async fn login_user(
     user.email.clone(),
     user.role.clone(),
     &state.jwt_secret,
+    state.jwt_expiration_hours
 )
 .map_err(|_| AppError::InternalServerError)?;
 

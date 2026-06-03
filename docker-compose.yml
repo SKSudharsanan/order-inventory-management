@@ -7,7 +7,8 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/order_inventory
       SERVER_ADDR: ${SERVER_ADDR}
-      JWT_SECRET: ${JWT_SECRET} 
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
       RUST_LOG: tower_http=info
     depends_on:
       - db

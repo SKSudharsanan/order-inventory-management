@@ -15,11 +15,12 @@ pub fn generate_token(
     email: String,
     role: String,
     secret: &str,
+    expiration_hours: i64,
 ) -> Result<String, jsonwebtoken::errors::Error> {
     let expiration = chrono::Utc::now()
-        .checked_add_signed(chrono::Duration::hours(24))
-        .expect("valid timestamp")
-        .timestamp() as usize;
+    .checked_add_signed(chrono::Duration::hours(expiration_hours))
+    .expect("valid timestamp")
+    .timestamp() as usize;
 
     let claims = Claims {
         sub: user_id,

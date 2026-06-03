@@ -18,6 +18,9 @@ pub async fn create_order(
     State(state): State<AppState>,
     Json(payload): Json<CreateOrderRequest>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Order>>)> {
+    if !_auth_user.can_manage_orders() {
+    return Err(AppError::Forbidden);
+    }
     if payload.customer_name.trim().is_empty() {
         return Err(AppError::BadRequest("Customer name is required".to_string()));
     }
@@ -79,6 +82,7 @@ pub async fn create_order(
 }
 
 pub async fn list_orders(
+    _auth_user: AuthUser,
     State(state): State<AppState>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Vec<Order>>>)> {
     let orders = order_repository::list_orders(&state.db).await?;
@@ -93,6 +97,7 @@ pub async fn list_orders(
 }
 
 pub async fn get_order_by_id(
+    _auth_user: AuthUser,
     State(state): State<AppState>,
     Path(order_id): Path<uuid::Uuid>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Order>>)> {
@@ -115,6 +120,9 @@ pub async fn update_order_status(
     Path(order_id): Path<uuid::Uuid>,
     Json(payload): Json<UpdateOrderStatusRequest>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Order>>)> {
+    if !_auth_user.can_manage_orders() {
+    return Err(AppError::Forbidden);
+    }
     let valid_statuses = ["created", "processing", "shipped", "delivered", "cancelled"];
 
     if !valid_statuses.contains(&payload.status.as_str()) {

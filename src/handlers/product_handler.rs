@@ -16,6 +16,9 @@ pub async fn create_product(
     State(state): State<AppState>,
     Json(payload): Json<CreateProductRequest>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Product>>)> {
+    if !_auth_user.can_manage_inventory() {
+    return Err(AppError::Forbidden);
+    }
     if payload.name.trim().is_empty() {
         return Err(AppError::BadRequest("Product name is required".to_string()));
     }
@@ -62,6 +65,7 @@ pub async fn create_product(
 }
 
 pub async fn list_products(
+    _auth_user: AuthUser,
     State(state): State<AppState>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Vec<Product>>>)> {
     let products = product_repository::list_products(&state.db).await?;
@@ -75,6 +79,7 @@ pub async fn list_products(
 }
 
 pub async fn get_product_by_id(
+    _auth_user: AuthUser,
     State(state): State<AppState>,
     Path(product_id): Path<uuid::Uuid>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Product>>)> {
@@ -97,6 +102,9 @@ pub async fn update_product_stock(
     Path(product_id): Path<uuid::Uuid>,
     Json(payload): Json<UpdateStockRequest>,
 ) -> AppResult<(StatusCode, Json<ApiResponse<Product>>)> {
+     if !_auth_user.can_manage_inventory() {
+    return Err(AppError::Forbidden);
+    }
     if payload.stock < 0 {
         return Err(AppError::BadRequest("Stock cannot be negative".to_string()));
     }

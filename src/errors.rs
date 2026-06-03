@@ -29,6 +29,9 @@ pub enum AppError {
 
     #[error("Internal server error")]
     InternalServerError,
+
+    #[error("Forbidden: you do not have permission to perform this action")]
+    Forbidden,
 }
 
 #[derive(Serialize)]
@@ -47,6 +50,7 @@ impl IntoResponse for AppError {
             AppError::DuplicateSku => StatusCode::CONFLICT,
             AppError::BadRequest(_) => StatusCode::BAD_REQUEST,
             AppError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::Forbidden => StatusCode::FORBIDDEN,
         };
 
         let body = Json(ErrorResponse {

@@ -19,6 +19,28 @@ pub struct AuthUser {
     pub role: String,
 }
 
+impl AuthUser {
+    pub fn is_admin(&self) -> bool {
+        self.role == "admin"
+    }
+
+    pub fn is_manager(&self) -> bool {
+        self.role == "manager"
+    }
+
+    pub fn is_staff(&self) -> bool {
+        self.role == "staff"
+    }
+
+    pub fn can_manage_inventory(&self) -> bool {
+        self.is_admin() || self.is_manager()
+    }
+
+    pub fn can_manage_orders(&self) -> bool {
+        self.is_admin() || self.is_manager()
+    }
+}
+
 pub enum AuthError {
     MissingToken,
     InvalidToken,

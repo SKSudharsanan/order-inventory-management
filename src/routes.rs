@@ -26,6 +26,7 @@ use crate::{
             get_product_by_id,
             update_product_stock},
         ws_handler::ws_handler,
+        user_handler::list_users,
     },
     state::AppState};
 
@@ -43,5 +44,6 @@ pub fn create_router(state: AppState) -> Router {
     .route("/products/{id}/stock", patch(update_product_stock))
     .route("/orders/{id}", get(get_order_by_id))
     .route("/orders/{id}/status", patch(update_order_status))
+    .route("/users", get(list_users))
     .with_state(state)
 }

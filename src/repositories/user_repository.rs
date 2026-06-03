@@ -56,3 +56,17 @@ pub async fn find_user_by_id(
     .fetch_optional(db)
     .await
 }
+
+pub async fn list_users(
+    db: &PgPool,
+) -> Result<Vec<User>, sqlx::Error> {
+    sqlx::query_as::<_, User>(
+        r#"
+        SELECT id, username, email, password_hash, role, created_at
+        FROM users
+        ORDER BY created_at DESC
+        "#,
+    )
+    .fetch_all(db)
+    .await
+}

@@ -79,6 +79,8 @@ pub struct LoginUserRequest {
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {
     pub token: String,
+    pub user: UserResponse,
+
 }
 
 #[derive(Debug, Serialize)]

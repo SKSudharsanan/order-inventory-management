@@ -6,11 +6,14 @@ use axum::{
 
 use crate::{
     errors::{AppError, AppResult},
-    models::{RegisterUserRequest, User, UserResponse, LoginUserRequest},
+    models::{AuthResponse, LoginUserRequest, RegisterUserRequest, UserResponse},
     repositories::user_repository,
     response::ApiResponse,
     state::AppState,
-    utils::password::{hash_password, verify_password},
+    utils::{
+        jwt::generate_token,
+        password::{hash_password, verify_password},
+    },
 };
 
 pub async fn register_user(
@@ -63,7 +66,7 @@ pub async fn register_user(
 pub async fn login_user(
     State(state): State<AppState>,
     Json(payload): Json<LoginUserRequest>,
-) -> AppResult<(StatusCode, Json<ApiResponse<UserResponse>>)> {
+) -> AppResult<(StatusCode, Json<ApiResponse<AuthResponse>>)> {
     if payload.email.trim().is_empty() {
         return Err(AppError::BadRequest("Email is required".to_string()));
     }
@@ -82,12 +85,24 @@ pub async fn login_user(
     if !is_valid {
         return Err(AppError::BadRequest("Invalid email or password".to_string()));
     }
+    let token = generate_token(
+    user.id,
+    user.email.clone(),
+    user.role.clone(),
+    &state.jwt_secret,
+)
+.map_err(|_| AppError::InternalServerError)?;
+
+let auth_response = AuthResponse {
+    token,
+    user: user.into(),
+};
 
     Ok((
         StatusCode::OK,
         Json(ApiResponse::success(
             "Login successful",
-            user.into(),
+            auth_response,
         )),
     ))
 }

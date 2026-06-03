@@ -32,7 +32,7 @@ async fn main() {
 
     let (event_tx, _) = broadcast::channel(100);
 
-    let state = AppState { db, event_tx };
+    let state = AppState { db, event_tx, jwt_secret: config.jwt_secret, };
     let app = create_router(state)
     .layer(CorsLayer::permissive())
     .layer(

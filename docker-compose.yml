@@ -6,7 +6,8 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/order_inventory
-      SERVER_ADDR: 0.0.0.0:3000
+      SERVER_ADDR: ${SERVER_ADDR}
+      JWT_SECRET: ${JWT_SECRET} 
       RUST_LOG: tower_http=info
     depends_on:
       - db
